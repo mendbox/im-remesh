@@ -1,0 +1,19 @@
+numeric fma=0 eval=0 simd=None math=42ff066ec2e6345a heap=e7fb6afab59e2e6f sort=450eb64a4a48bd73
+input icosphere: 10242 vertices, 20480 triangles, hash 1a41526d588050db
+input sheet: 3721 vertices, 7200 triangles, hash 6b06062e30b651a8
+input torus: 12800 vertices, 25600 triangles, hash 203fe7e019c14d59
+input twisted_box: 5762 vertices, 11520 triangles, hash 099f517edc437cd3
+torus faces=500: 1962 vertices, 1962 faces (width 4), 0 with a repeated corner, hash 2164fd38f497c1d1
+torus faces=2500: 10016 vertices, 10016 faces (width 4), 0 with a repeated corner, hash a28c4f74d389ccf6
+torus faces=500 posy=3 rosy=6: 261 vertices, 522 faces (width 3), 0 with a repeated corner, hash 148869f01f8285ae
+torus scale=0.1 crease=0: 5702 vertices, 5702 faces (width 4), 0 with a repeated corner, hash a7946f1e39dccdc5
+torus faces=400 intrinsic smooth=0 nondet: 1736 vertices, 1736 faces (width 4), 0 with a repeated corner, hash 7a6e12214e654c9e
+icosphere faces=300: 1232 vertices, 1230 faces (width 4), 0 with a repeated corner, hash a003f3a0dc7c1a06
+icosphere faces=1500 crease=0: 5998 vertices, 5996 faces (width 4), 0 with a repeated corner, hash 0d8ddcb39a893c4d
+icosphere faces=4000: 16230 vertices, 16228 faces (width 4), 0 with a repeated corner, hash 57d0d4b6b9977491
+twisted_box faces=400 crease=30: 1616 vertices, 1614 faces (width 4), 0 with a repeated corner, hash 4321d6445ec0e380
+twisted_box faces=1500: 6014 vertices, 6012 faces (width 4), 0 with a repeated corner, hash 35497c5a0f653cd0
+twisted_box faces=1500 crease=0: 6038 vertices, 6036 faces (width 4), 0 with a repeated corner, hash 600cb0030df95e30
+sheet faces=300 boundaries: 1349 vertices, 1274 faces (width 4), 0 with a repeated corner, hash 1e8950055fe83bc4
+sheet faces=1200 boundaries crease=20: 4953 vertices, 4812 faces (width 4), 0 with a repeated corner, hash 6aee47052154d840
+sheet faces=600 posy=3: 328 vertices, 577 faces (width 3), 0 with a repeated corner, hash 528538ed7d5469e0

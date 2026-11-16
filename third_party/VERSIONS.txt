@@ -1,0 +1,15 @@
+Third-party sources in this folder: unmodified copies, only the files the build reads. Recreate by checking out the commits below and copying the same files.
+
+instant-meshes/src, LICENSE.txt, README.md   https://github.com/wjakob/instant-meshes   7b3160864a2e1025af498c84cfed91cbfb613698
+instant-meshes/ext/rply                      (part of the Instant Meshes tree, RPly 1.1.3) same commit
+instant-meshes/ext/pcg32                     https://github.com/wjakob/pcg32            0ef13e68ca0be5506e1cfc0db76831e6f916e9e9
+instant-meshes/ext/dset                      https://github.com/wjakob/dset             7967ef0e6041cd9d73b9c7f614ab8ae92e9e587a
+eigen/Eigen, COPYING.*                       https://github.com/libigl/eigen            c34a9130bc585b288703bd9716d7efae194974e2   (Eigen 3.2.9)
+
+Eigen is reached upstream through the nanogui submodule (wjakob/nanogui 2a61f03cdf1b94c4766a00199799794df91a528e, ext/eigen).
+Licences: ../THIRD_PARTY.md and ../licenses/. Not compiled from src/: the viewer, main.cpp, batch.cpp, meshio.cpp, glutil, widgets.
+Eigen's LGPL files are present in the copy but excluded from every build by EIGEN_MPL2_ONLY.
+
+nanobind/{cmake,include,src,ext/robin_map,LICENSE,README.md}  https://github.com/wjakob/nanobind  release 3.1.0
+  source: PyPI sdist nanobind-3.1.0.tar.gz, sha256 6661e3dc1434d78781ccf7913442d90361dab395c3424efadb63bbb6ddea7ea3 (unmodified files; docs and tests left out)
+  robin_map (tsl, MIT) is the copy that nanobind ships in ext/robin_map.

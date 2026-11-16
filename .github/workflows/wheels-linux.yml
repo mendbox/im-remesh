@@ -1,0 +1,52 @@
+name: wheels-linux
+
+# Builds the manylinux_2_28 x86_64 wheels (cp311 and cp312-abi3) in Docker, tests them and keeps them as an artifact.
+# Fails when the results are not bit-identical to the macOS arm64 reference (tests/*fingerprint_ref.txt); the fingerprints
+# of this run are uploaded either way (artifact im_remesh-fingerprint-linux_x86_64).
+# One run per push to main or version tag, or by hand. Not triggered by pull requests from forks.
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+concurrency:
+  group: wheels-linux-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  manylinux:
+    runs-on: ${{ fromJSON(vars.CI_RUNNER_LABELS || '["ubuntu-latest"]') }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and test in manylinux_2_28
+        run: |
+          docker run --rm \
+            --user "$(id -u):$(id -g)" -e HOME=/tmp/home \
+            -e CMAKE_BUILD_PARALLEL_LEVEL=2 \
+            --memory 6g --cpus 2 \
+            -v "$PWD":/io -w /io \
+            quay.io/pypa/manylinux_2_28_x86_64 \
+            bash ci/build_linux.sh
+
+      - name: Upload fingerprints
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: im_remesh-fingerprint-linux_x86_64
+          path: fingerprint/
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: im_remesh-manylinux_2_28_x86_64
+          path: wheelhouse/*.whl
+          if-no-files-found: error
+          retention-days: 30

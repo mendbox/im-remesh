@@ -1,0 +1,26 @@
+[build-system]
+requires = ["scikit-build-core>=0.10"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "im-remesh"
+version = "0.1.2"
+description = "Deterministic, cross-platform Python binding for Instant Meshes (field-aligned quad remeshing)"
+requires-python = ">=3.11"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE", "THIRD_PARTY.md", "licenses/*"]
+dependencies = ["numpy"]
+
+[tool.scikit-build]
+minimum-version = "build-system.requires"
+cmake.build-type = "Release"
+wheel.packages = ["src/im_remesh"]
+# One abi3 wheel for Python 3.12 and later; ignored when the build runs on Python 3.11 (normal cp311 wheel).
+wheel.py-api = "cp312"
+build-dir = "build/{wheel_tag}"
+
+[project.urls]
+Homepage = "https://github.com/mendbox/im-remesh"
+
+[tool.scikit-build.cmake.define]
+CMAKE_OSX_DEPLOYMENT_TARGET = "11.0"

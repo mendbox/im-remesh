@@ -1,0 +1,5 @@
+# The upstream copies and the patch must keep their bytes: a checkout that rewrites line endings (Windows, core.autocrlf)
+# would make patches/instant-meshes-determinism.patch fail to apply.
+third_party/** -text
+patches/** -text
+tests/*_ref.txt text eol=lf

@@ -1,0 +1,19 @@
+numeric fma=0 eval=0 simd=None math=42ff066ec2e6345a heap=e7fb6afab59e2e6f sort=450eb64a4a48bd73
+input icosphere: 2562 vertices, 5120 triangles, hash f3ecb53a4bbaff78
+input sheet: 1681 vertices, 3200 triangles, hash c4560b42e3e90ab9
+input torus: 4608 vertices, 9216 triangles, hash 74b91e9b626a36c6
+input twisted_box: 2562 vertices, 5120 triangles, hash 41ee2bf7e3395a24
+torus target_face_count=300: 1192 vertices, 1192 faces (width 4), hash 1850d85b8b878629
+torus target_face_count=1500: 6066 vertices, 6066 faces (width 4), hash eafb9794a1018bdd
+torus target_face_count=300 posy=3 rosy=6: 149 vertices, 298 faces (width 3), hash 7f2588886fa1eb04
+torus scale=0.12 crease_angle=0: 3880 vertices, 3880 faces (width 4), hash 04407348e786daaa
+torus target_vertex_count=400 crease_angle=30 align_to_boundaries=True extrinsic=False smooth_iter=0 deterministic=False: 1648 vertices, 1648 faces (width 4), hash e08a02ce11bb88af
+icosphere target_face_count=250: 1072 vertices, 1070 faces (width 4), hash 2c3bddef74c09dc4
+icosphere target_face_count=1000 crease_angle=0: 4112 vertices, 4110 faces (width 4), hash 784a2faac11160fa
+icosphere target_face_count=2500: 10150 vertices, 10148 faces (width 4), hash afd91241b4cb32fb
+twisted_box target_face_count=300 crease_angle=30: 1252 vertices, 1250 faces (width 4), hash f9b7aa4b54f3975e
+twisted_box target_face_count=1200: 4832 vertices, 4830 faces (width 4), hash 0776ebc32002e1f1
+twisted_box target_face_count=1200 crease_angle=0: 4842 vertices, 4840 faces (width 4), hash 8aab748e599fe327
+sheet target_face_count=250 align_to_boundaries=True: 1135 vertices, 1068 faces (width 4), hash 0af0129992308ac1
+sheet target_face_count=1000 align_to_boundaries=True crease_angle=20: 4191 vertices, 4061 faces (width 4), hash ff89cffac0a722fd
+sheet target_face_count=500 posy=3: 289 vertices, 510 faces (width 3), hash 6be9a3aa7614b538

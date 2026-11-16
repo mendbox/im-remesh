@@ -1,0 +1,191 @@
+im_remesh: make the Instant Meshes core give the same bits on every platform.
+
+Applies to github.com/wjakob/instant-meshes at commit 7b3160864a2e1025af498c84cfed91cbfb613698 (the copy in
+third_party/instant-meshes/, which stays unmodified). CMakeLists.txt copies the upstream sources into the build
+directory and applies this file there (patch -p1, or git apply).
+
+The changes are modifications of BSD 3-clause code (licenses/instant-meshes-LICENSE.txt), made by the im_remesh
+authors in November 2026 and recorded in THIRD_PARTY.md. The changed lines are offered under the same BSD 3-clause
+terms as the files they change, so each patched file stays under one licence. They do not change what the algorithm
+does, only which of several equally valid results it picks:
+
+  1. std::sort -> std::stable_sort where equal keys can occur (hierarchy.cpp, extract.cpp, bvh.cpp). The order
+     std::sort leaves equal keys in differs between libc++, libstdc++ and the MSVC STL.
+  2. std::cos / sin / exp / atan2 / acos -> imdet:: versions from src/serial_shim/im_portable_math.h (common.h pulls
+     the header in). The C library versions differ in the last bit between macOS, glibc and the MSVC runtime.
+  3. reorder.cpp: std::unordered_set -> std::set for the set of unprocessed faces, whose begin() picks the next
+     seed face. The iteration order of std::unordered_set differs between standard libraries.
+
+Not touched because the binding never reaches them: smoothcurve.cpp (std::priority_queue), BVH::findKNearest
+(std::make_heap / push_heap), generate_graph_coloring (only uint32_t keys are sorted there, no ties to order).
+
+--- a/src/bvh.cpp
++++ b/src/bvh.cpp
+@@ -189,11 +189,11 @@
+ 
+         for (int axis=0; axis<3; ++axis) {
+             if (pointcloud) {
+-                std::sort(start, end, [&](uint32_t f1, uint32_t f2) {
++                std::stable_sort(start, end, [&](uint32_t f1, uint32_t f2) { /* im_remesh patch: stable */
+                     return V(axis, f1) < V(axis, f2);
+                 });
+             } else {
+-                std::sort(start, end, [&](uint32_t f1, uint32_t f2) {
++                std::stable_sort(start, end, [&](uint32_t f1, uint32_t f2) { /* im_remesh patch: stable */
+                     return
+                         (V(axis, F(0, f1)) + V(axis, F(1, f1)) + V(axis, F(2, f1))) <
+                         (V(axis, F(0, f2)) + V(axis, F(1, f2)) + V(axis, F(2, f2)));
+@@ -254,11 +254,11 @@
+ 
+ 
+         if (pointcloud) {
+-            std::sort(start, end, [&](uint32_t f1, uint32_t f2) {
++            std::stable_sort(start, end, [&](uint32_t f1, uint32_t f2) { /* im_remesh patch: stable */
+                 return V(best_axis, f1) < V(best_axis, f2);
+             });
+         } else {
+-            std::sort(start, end, [&](uint32_t f1, uint32_t f2) {
++            std::stable_sort(start, end, [&](uint32_t f1, uint32_t f2) { /* im_remesh patch: stable */
+                 return
+                     (V(best_axis, F(0, f1)) + V(best_axis, F(1, f1)) + V(best_axis, F(2, f1))) <
+                     (V(best_axis, F(0, f2)) + V(best_axis, F(1, f2)) + V(best_axis, F(2, f2)));
+@@ -717,7 +717,7 @@
+     uint32_t stack_idx = 0;
+     Float radius2 = radius*radius;
+     bool isHeap = false;
+-    angleThresh = std::cos(angleThresh * M_PI/180);
++    angleThresh = imdet::cos(angleThresh * M_PI/180); /* im_remesh patch */
+     auto comp = [](const std::pair<Float, uint32_t> &v1, const std::pair<Float, uint32_t> &v2) {
+         return v1.first < v2.first;
+     };
+--- a/src/common.h
++++ b/src/common.h
+@@ -30,6 +30,7 @@
+ #include <mutex>
+ #include <thread>
+ #include <algorithm>
++#include <im_portable_math.h> /* im_remesh patch: imdet::sin, cos, exp, atan2, acos with identical bits on every platform */
+ 
+ #define PARALLELIZE
+ #define SINGLE_PRECISION
+--- a/src/extract.cpp
++++ b/src/extract.cpp
+@@ -280,7 +280,7 @@
+                         continue;
+                     uint32_t j = it->second;
+ 
+-                    Float weight = std::exp(-(O.col(i)-V.col(i)).squaredNorm() * inv_scale * inv_scale * 9);
++                    Float weight = imdet::exp(-(O.col(i)-V.col(i)).squaredNorm() * inv_scale * inv_scale * 9); /* im_remesh patch */
+                     if (COw.size() != 0 && COw[i] != 0) {
+                         tbb::spin_mutex::scoped_lock lock(mutex);
+                         crease_out.insert(j);
+@@ -352,7 +352,7 @@
+                     }
+                 }
+ 
+-                std::sort(candidates.begin(), candidates.end(), [&](
++                std::stable_sort(candidates.begin(), candidates.end(), [&]( /* im_remesh patch: stable */
+                     const decltype(candidates)::value_type &v0,
+                     const decltype(candidates)::value_type &v1)
+                         { return std::get<0>(v0) < std::get<0>(v1); });
+@@ -462,7 +462,7 @@
+                         }
+                     }
+                 }
+-                std::sort(candidates.begin(), candidates.end(), [&](
++                std::stable_sort(candidates.begin(), candidates.end(), [&]( /* im_remesh patch: stable */
+                     const std::pair<Float, Edge> &v0,
+                     const std::pair<Float, Edge> &v1) { return v0.first < v1.first; });
+ 
+@@ -501,10 +501,10 @@
+                 Vector3f s, t, p = O_new.col(i);
+                 coordinate_system(N_new.col(i), s, t);
+ 
+-                std::sort(adj_new[i].begin(), adj_new[i].end(),
++                std::stable_sort(adj_new[i].begin(), adj_new[i].end(), /* im_remesh patch: stable */
+                     [&](const TaggedLink &j0, const TaggedLink &j1) {
+                         Vector3f v0 = O_new.col(j0.id)-p, v1 = O_new.col(j1.id)-p;
+-                        return std::atan2(t.dot(v0), s.dot(v0)) > std::atan2(t.dot(v1), s.dot(v1));
++                        return imdet::atan2(t.dot(v0), s.dot(v0)) > imdet::atan2(t.dot(v1), s.dot(v1)); /* im_remesh patch */
+                     }
+                 );
+             }
+@@ -588,7 +588,7 @@
+                         Vector3f v2 = O.col(verts[(i+k+2)%verts.size()].first);
+                         Vector3f d0 = (v0-v1).normalized();
+                         Vector3f d1 = (v2-v1).normalized();
+-                        Float angle = std::acos(d0.dot(d1)) * 180.0f/M_PI;
++                        Float angle = imdet::acos(d0.dot(d1)) * 180.0f/M_PI; /* im_remesh patch */
+                         score += std::abs(angle - (posy == 4 ? 90 : 60));
+                     }
+ 
+--- a/src/hierarchy.cpp
++++ b/src/hierarchy.cpp
+@@ -146,7 +146,7 @@
+                         scratch.push_back(Link(to_lower[link->id], link->weight));
+                 }
+ 
+-                std::sort(scratch.begin(), scratch.end());
++                std::stable_sort(scratch.begin(), scratch.end()); /* im_remesh patch: links with equal id keep their order */
+                 uint32_t id = INVALID, size = 0;
+                 for (const auto &link : scratch) {
+                     if (id != link.id && link.id != i) {
+@@ -184,7 +184,7 @@
+                     for (Link *link = adj[upper]; link != adj[upper+1]; ++link)
+                         scratch.push_back(Link(to_lower[link->id], link->weight));
+                 }
+-                std::sort(scratch.begin(), scratch.end());
++                std::stable_sort(scratch.begin(), scratch.end()); /* im_remesh patch: links with equal id keep their order */
+                 Link *dest = adj_p[i];
+                 uint32_t id = INVALID;
+                 for (const auto &link : scratch) {
+@@ -473,7 +473,7 @@
+                 Vector3f s, t;
+                 coordinate_system(N.col(i), s, t);
+                 float angle = rng.nextFloat() * 2 * M_PI;
+-                Q.col(i) = s * std::cos(angle) + t * std::sin(angle);
++                Q.col(i) = s * imdet::cos(angle) + t * imdet::sin(angle); /* im_remesh patch */
+             }
+         }
+     );
+--- a/src/normal.cpp
++++ b/src/normal.cpp
+@@ -169,7 +169,7 @@
+                              const VectorXb &nonManifold, Float angleThreshold,
+                              MatrixXf &N, std::map<uint32_t, uint32_t> &creases,
+                              const ProgressCallback &progress) {
+-    const Float dpThreshold = std::cos(angleThreshold * M_PI / 180);
++    const Float dpThreshold = imdet::cos(angleThreshold * M_PI / 180); /* im_remesh patch */
+ 
+     cout << "Computing vertex & crease normals .. ";
+     cout.flush();
+@@ -318,7 +318,7 @@
+                              const VectorXb &nonManifold, Float angleThreshold,
+                              MatrixXf &N, std::set<uint32_t> &creases,
+                              const ProgressCallback &progress) {
+-    const Float dpThreshold = std::cos(angleThreshold * M_PI / 180);
++    const Float dpThreshold = imdet::cos(angleThreshold * M_PI / 180); /* im_remesh patch */
+ 
+     cout << "Computing vertex & crease normals .. ";
+     cout.flush();
+--- a/src/reorder.cpp
++++ b/src/reorder.cpp
+@@ -18,6 +18,7 @@
+ #include <unordered_set>
+ #include <unordered_map>
+ #include <queue>
++#include <set>
+ 
+ void reorder_mesh(MatrixXu &F, std::vector<MatrixXf> &V_vec, std::vector<MatrixXf> &F_vec,
+                   const ProgressCallback &progress) {
+@@ -26,7 +27,9 @@
+     VectorXb boundary, nonManifold;
+     build_dedge(F, V_vec[0], V2E, E2E, boundary, nonManifold, progress, true);
+ 
+-    std::unordered_set<uint32_t> unprocessed(F.cols());
++    /* im_remesh patch: an ordered set, so that begin() is the lowest face index on every platform
++       (the iteration order of std::unordered_set differs between standard libraries) */
++    std::set<uint32_t> unprocessed;
+     for (uint32_t i=0; i<F.cols(); ++i)
+         unprocessed.insert(i);
+ 

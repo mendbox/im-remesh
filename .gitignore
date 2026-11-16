@@ -1,0 +1,12 @@
+build/
+dist/
+out/
+vendor/
+*.whl
+.venv/
+__pycache__/
+*.pyc
+*.log
+.DS_Store
+wheelhouse/
+fingerprint/
