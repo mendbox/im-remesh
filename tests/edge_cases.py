@@ -21,7 +21,16 @@ if len(sys.argv) == 2:
     sys.exit(1 if bad else 0)
 
 sys.path.insert(0, sys.argv[1]); case = sys.argv[2]
-import numpy as np, im_remesh, resource
+import numpy as np, im_remesh
+try: import resource
+except ImportError: resource = None                    # Windows: peak working set through ctypes instead
+def peak_rss():
+    if resource: return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    import ctypes, ctypes.wintypes as w
+    class PMC(ctypes.Structure): _fields_ = [("cb", w.DWORD), ("PageFaultCount", w.DWORD)] + [(n, ctypes.c_size_t) for n in ("PeakWorkingSetSize", "WorkingSetSize", "QuotaPeakPagedPoolUsage", "QuotaPagedPoolUsage", "QuotaPeakNonPagedPoolUsage", "QuotaNonPagedPoolUsage", "PagefileUsage", "PeakPagefileUsage")]
+    k = ctypes.WinDLL("kernel32", use_last_error=True); p = ctypes.WinDLL("psapi", use_last_error=True)
+    k.GetCurrentProcess.restype = w.HANDLE; p.GetProcessMemoryInfo.argtypes = [w.HANDLE, ctypes.POINTER(PMC), w.DWORD]
+    m = PMC(); m.cb = ctypes.sizeof(PMC); p.GetProcessMemoryInfo(k.GetCurrentProcess(), ctypes.byref(m), m.cb); return m.PeakWorkingSetSize
 def cube():
     v = np.array([[x, y, z] for x in (0, 1) for y in (0, 1) for z in (0, 1)], np.float32)
     f = np.array([[0, 1, 3], [0, 3, 2], [4, 6, 7], [4, 7, 5], [0, 4, 5], [0, 5, 1], [2, 3, 7], [2, 7, 6], [0, 2, 6], [0, 6, 4], [1, 5, 7], [1, 7, 3]], np.uint32)
@@ -53,9 +62,9 @@ elif case == "float_faces": f = f.astype(np.float64) + 0.5                      
 elif case == "far_but_coarse_target": v = v * 1000 + np.float32(1e6); kw = dict(target_face_count=6)  # big and far, but resolvable: must work
 try:
     if case == "repeat_200_calls":
-        v, f = plane(60); im_remesh.remesh(v, f, **kw); r0 = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        v, f = plane(60); im_remesh.remesh(v, f, **kw); r0 = peak_rss()
         for _ in range(200): rv, rf = im_remesh.remesh(v, f, **kw)
-        print("%d quads; peak memory grew by %.1f MB over 200 calls" % (len(rf), (resource.getrusage(resource.RUSAGE_SELF).ru_maxrss - r0) / 2 ** 20))
+        print("%d quads; peak memory grew by %.1f MB over 200 calls" % (len(rf), (peak_rss() - r0) / 2 ** 20))
     else:
         import time; t0 = time.perf_counter()
         try: rv, rf = im_remesh.remesh(v, f, **kw)

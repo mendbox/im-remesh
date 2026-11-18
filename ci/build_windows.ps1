@@ -15,7 +15,7 @@ foreach ($d in $fp, $wh, $tmp) { Remove-Item -Recurse -Force $d -ErrorAction Sil
 $mismatch = 0
 $rt = "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded"
 function Run($exe, [string[]]$a) { & $exe @a; if ($LASTEXITCODE -ne 0) { throw "$exe $($a -join ' ') failed ($LASTEXITCODE)" } }
-@("$([Environment]::OSVersion.VersionString) $env:PROCESSOR_ARCHITECTURE", (cl 2>&1 | Select-Object -First 1), (cmake --version | Select-Object -First 1)) |
+@("$([Environment]::OSVersion.VersionString) $env:PROCESSOR_ARCHITECTURE", (cmd /c "cl 2>&1" | Select-Object -First 1), (cmake --version | Select-Object -First 1)) |
   Set-Content (Join-Path $fp "platform.txt")
 
 # 1. Core without Python: every case twice with identical results, quads only, and the core fingerprint against the reference
